@@ -1,0 +1,105 @@
+---
+# ── ConfigMap ──────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-config
+  namespace: shopeasy
+  labels:
+    app: order-service
+    app.kubernetes.io/part-of: shopeasy
+data:
+  PORT:                "5002"
+  PRODUCT_SERVICE_URL: "http://product-service:8080"
+
+---
+# ── Secret ─────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: order-service-secrets
+  namespace: shopeasy
+  labels:
+    app: order-service
+    app.kubernetes.io/part-of: shopeasy
+type: Opaque
+data:
+  # echo -n "shopeasy-insecure-secret" | base64
+  JWT_SECRET: c2hvcGVhc3ktaW5zZWN1cmUtc2VjcmV0
+
+---
+# ── Deployment ─────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: shopeasy
+  labels:
+    app: order-service
+    app.kubernetes.io/part-of: shopeasy
+    version: "1.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+        version: "1.0.0"
+    spec:
+      containers:
+        - name: order-service
+          image: shopeasy/order-service:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5002
+          envFrom:
+            - configMapRef:
+                name: order-service-config
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: order-service-secrets
+                  key: JWT_SECRET
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5002
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+---
+# ── Service ────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: shopeasy
+  labels:
+    app: order-service
+    app.kubernetes.io/part-of: shopeasy
+spec:
+  type: ClusterIP
+  selector:
+    app: order-service
+  ports:
+    - name: http
+      port: 5002
+      targetPort: 5002
+      protocol: TCP

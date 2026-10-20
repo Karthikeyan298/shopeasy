@@ -1,0 +1,111 @@
+version: "3.9"
+
+services:
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    image: shopeasy/api-gateway:1.0.0
+    container_name: api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      USER_SERVICE_URL:    "http://user-service:5001"
+      PRODUCT_SERVICE_URL: "http://product-service:8080"
+      ORDER_SERVICE_URL:   "http://order-service:5002"
+      PORT: "3000"
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+    networks:
+      - shopeasy-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    image: shopeasy/user-service:1.0.0
+    container_name: user-service
+    ports:
+      - "5001:5001"
+    environment:
+      PORT:       "5001"
+      FLASK_ENV:  "development"
+      SECRET_KEY: "dev-secret-key"
+    networks:
+      - shopeasy-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    image: shopeasy/product-service:1.0.0
+    container_name: product-service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: "prod"
+      SERVER_PORT:             "8080"
+    networks:
+      - shopeasy-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    image: shopeasy/order-service:1.0.0
+    container_name: order-service
+    ports:
+      - "5002:5002"
+    environment:
+      PORT:                "5002"
+      PRODUCT_SERVICE_URL: "http://product-service:8080"
+      JWT_SECRET:          "dev-jwt-secret"
+    depends_on:
+      - product-service
+    networks:
+      - shopeasy-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5002/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  storefront:
+    build:
+      context: ./storefront
+      dockerfile: Dockerfile
+    image: shopeasy/storefront:1.0.0
+    container_name: storefront
+    ports:
+      - "8888:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - shopeasy-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+networks:
+  shopeasy-net:
+    driver: bridge

@@ -1,0 +1,27 @@
+{
+  "name": "api-gateway",
+  "version": "1.0.0",
+  "description": "ShopEasy API Gateway — routes requests to downstream microservices",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "express": "4.17.1",
+    "http-proxy-middleware": "2.0.1",
+    "lodash": "4.17.15",
+    "qs": "6.5.2",
+    "morgan": "1.9.1",
+    "helmet": "4.6.0",
+    "cors": "2.8.5",
+    "jsonwebtoken": "8.5.1",
+    "axios": "0.21.1"
+  },
+  "devDependencies": {
+    "nodemon": "2.0.15"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

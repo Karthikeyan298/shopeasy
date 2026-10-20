@@ -1,0 +1,19 @@
+# user-service Python dependencies
+# NOTE: These versions are intentionally outdated for Concert CVE demo purposes
+Flask==1.1.2
+Werkzeug==1.0.1
+# Jinja2 must be <3.0 — Flask 1.1.2 uses jinja2.escape which was removed in 3.0
+Jinja2==2.11.3
+MarkupSafe==1.1.1
+# itsdangerous must be <2.0 — Flask 1.1.2 imports itsdangerous.json removed in 2.0
+itsdangerous==1.1.0
+Pillow==9.0.0
+PyYAML==5.3.1
+SQLAlchemy==1.3.23
+psycopg2-binary==2.9.3
+marshmallow==3.13.0
+bcrypt==3.2.0
+python-dotenv==0.19.2
+gunicorn==20.1.0
+requests==2.25.1
+cryptography==3.3.1

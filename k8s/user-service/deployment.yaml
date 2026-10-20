@@ -1,0 +1,95 @@
+---
+# ── ConfigMap ──────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-service-config
+  namespace: shopeasy
+  labels:
+    app: user-service
+    app.kubernetes.io/part-of: shopeasy
+data:
+  PORT:        "5001"
+  FLASK_ENV:   "production"
+
+---
+# ── Secret user-service-secrets is created out-of-band (not stored in git):
+#   kubectl create secret generic user-service-secrets -n shopeasy \
+#     --from-literal=SECRET_KEY=<value>
+
+---
+# ── Deployment ─────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: shopeasy
+  labels:
+    app: user-service
+    app.kubernetes.io/part-of: shopeasy
+    version: "1.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+        version: "1.0.0"
+    spec:
+      containers:
+        - name: user-service
+          image: shopeasy/user-service:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5001
+          envFrom:
+            - configMapRef:
+                name: user-service-config
+          env:
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: user-service-secrets
+                  key: SECRET_KEY
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5001
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+---
+# ── Service ────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: shopeasy
+  labels:
+    app: user-service
+    app.kubernetes.io/part-of: shopeasy
+spec:
+  type: ClusterIP
+  selector:
+    app: user-service
+  ports:
+    - name: http
+      port: 5001
+      targetPort: 5001
+      protocol: TCP

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShopEasy</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- ── Nav ─────────────────────────────────────────────────────────────── -->
+  <header class="navbar">
+    <div class="nav-brand">🛍️ ShopEasy</div>
+    <nav class="nav-links">
+      <a href="index.html" class="active">Products</a>
+      <a href="orders.html">My Orders</a>
+    </nav>
+    <div class="nav-right">
+      <button class="cart-btn" onclick="toggleCart()">
+        🛒 Cart <span id="cart-count" class="badge">0</span>
+      </button>
+      <div id="auth-area">
+        <button class="btn btn-outline" onclick="showModal('login-modal')">Login</button>
+        <button class="btn btn-primary" onclick="showModal('register-modal')">Register</button>
+      </div>
+      <div id="user-area" style="display:none">
+        <span id="username-display" class="username"></span>
+        <button class="btn btn-outline" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Cart sidebar ──────────────────────────────────────────────────────── -->
+  <div id="cart-sidebar" class="cart-sidebar hidden">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button onclick="toggleCart()">✕</button>
+    </div>
+    <div id="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total">Total: $<span id="cart-total">0.00</span></div>
+      <button class="btn btn-primary w-full" onclick="placeOrder()">Place Order</button>
+    </div>
+  </div>
+  <div id="cart-overlay" class="overlay hidden" onclick="toggleCart()"></div>
+
+  <!-- ── Main ──────────────────────────────────────────────────────────────── -->
+  <main class="container">
+    <div class="page-header">
+      <h1>Products</h1>
+      <div class="search-bar">
+        <input id="search-input" type="text" placeholder="Search products…" oninput="debounceSearch()" />
+        <select id="category-filter" onchange="loadProducts()">
+          <option value="">All categories</option>
+          <option value="electronics">Electronics</option>
+          <option value="accessories">Accessories</option>
+          <option value="audio">Audio</option>
+          <option value="storage">Storage</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="toast-area"></div>
+    <div id="products-grid" class="products-grid">
+      <div class="loading">Loading products…</div>
+    </div>
+  </main>
+
+  <!-- ── Login modal ───────────────────────────────────────────────────────── -->
+  <div id="login-modal" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>Login</h2>
+        <button onclick="closeModal('login-modal')">✕</button>
+      </div>
+      <form onsubmit="login(event)">
+        <label>Email</label>
+        <input id="login-email" type="email" required placeholder="you@example.com" />
+        <label>Password</label>
+        <input id="login-password" type="password" required placeholder="••••••••" />
+        <div id="login-error" class="form-error hidden"></div>
+        <button type="submit" class="btn btn-primary w-full">Login</button>
+      </form>
+      <p class="modal-footer">No account? <a href="#" onclick="switchModal('login-modal','register-modal')">Register</a></p>
+    </div>
+  </div>
+
+  <!-- ── Register modal ───────────────────────────────────────────────────── -->
+  <div id="register-modal" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>Create Account</h2>
+        <button onclick="closeModal('register-modal')">✕</button>
+      </div>
+      <form onsubmit="register(event)">
+        <label>Username</label>
+        <input id="reg-username" type="text" required placeholder="alice" />
+        <label>Email</label>
+        <input id="reg-email" type="email" required placeholder="you@example.com" />
+        <label>Password</label>
+        <input id="reg-password" type="password" required placeholder="••••••••" />
+        <div id="register-error" class="form-error hidden"></div>
+        <button type="submit" class="btn btn-primary w-full">Create Account</button>
+      </form>
+      <p class="modal-footer">Have an account? <a href="#" onclick="switchModal('register-modal','login-modal')">Login</a></p>
+    </div>
+  </div>
+  <div class="modal-backdrop hidden" id="modal-backdrop" onclick="closeAllModals()"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/ui.js"></script>
+  <script>loadProducts();</script>
+</body>
+</html>
