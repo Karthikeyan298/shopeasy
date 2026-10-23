@@ -1,4 +1,4 @@
-# ShopEasy — IBM Concert Platform Demo
+# ShopEasy
 
 A realistic e-commerce microservices application purpose-built to demonstrate **IBM Concert** capabilities:
 
