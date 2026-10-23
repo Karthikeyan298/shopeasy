@@ -248,5 +248,3 @@ shopeasy/
 ```
 
 ---
-
-> ⚠️ **Demo Use Only** — This application contains intentionally vulnerable dependencies to demonstrate IBM Concert's CVE detection capabilities. Do not deploy to production.
