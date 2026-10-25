@@ -87,6 +87,12 @@ def upload_avatar(user_id):
         return jsonify({'error': 'No file part'}), 400
 
     file = request.files['file']
+
+    # Fix #3: Validate Content-Type before processing — prevents disguised executable uploads
+    ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
+    if file.content_type not in ALLOWED_MIME_TYPES:
+        return jsonify({'error': 'Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.'}), 400
+
     img_bytes = file.read()
 
     # CVE-2022-22817: ImageMath.eval used without restrictions
@@ -102,8 +108,8 @@ def upload_avatar(user_id):
 def load_config():
     """Loads user preference config from YAML body — unsafe yaml.load used."""
     raw = request.data.decode('utf-8')
-    # CVE-2020-14343: yaml.load without Loader allows arbitrary code execution
-    config = yaml.load(raw)  # noqa: S506
+    # Fix #2: yaml.safe_load prevents arbitrary code execution via !!python/object/apply
+    config = yaml.safe_load(raw)
     return jsonify({'loaded_keys': list(config.keys()) if config else []})
 
 
