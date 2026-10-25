@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -57,9 +58,15 @@ public class ProductController {
     // ── Get by ID ─────────────────────────────────────────────────────────────
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProduct(@PathVariable Long id) {
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
         Optional<Product> product = productRepository.findById(id);
-        return product.map(ResponseEntity::ok)
-                      .orElse(ResponseEntity.notFound().build());
+        if (product.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        if (!product.get().getOwnerUsername().equals(currentUser)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(product.get());
     }
 
     // ── Create ────────────────────────────────────────────────────────────────
@@ -74,7 +81,11 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id,
                                                   @RequestBody Product updated) {
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
         return productRepository.findById(id).map(existing -> {
+            if (!existing.getOwnerUsername().equals(currentUser)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).<Product>build();
+            }
             existing.setName(updated.getName());
             existing.setDescription(updated.getDescription());
             existing.setPrice(updated.getPrice());
